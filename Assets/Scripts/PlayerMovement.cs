@@ -1,10 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class PlayerMovement : MonoBehaviour
 {
-    // Start is called before the first frame update
+    Vector2 playerInput;
     void Start()
     {
         
@@ -15,4 +16,10 @@ public class PlayerMovement : MonoBehaviour
     {
         
     }
+    void OnMove(InputValue value)
+    {
+        playerInput = value.Get<Vector2>();
+        Debug.Log(playerInput);
+    }
+    
 }
