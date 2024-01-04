@@ -8,31 +8,63 @@ public class PlayerMovement : MonoBehaviour
     Vector2 playerInput;
     Rigidbody2D rb;
     [SerializeField] private float speed = 5.0f;
+    [SerializeField] float climbSpeed = 3.0f;
+    [SerializeField] float jumpForce = 5.0f;
+    [SerializeField] LayerMask groundLayer;
+    [SerializeField] LayerMask ladderLayer;
     Animator animator;
     private string running_anim = "isRunning";
+    private string climb_anim = "isClimbing";
+    CapsuleCollider2D capsuleCollider;
+    private bool isClimbing = false;
+    private float gravityAtStart;
+    
     void Start()
     {
      rb = GetComponent<Rigidbody2D>(); 
      animator = GetComponent<Animator>();
+     capsuleCollider = GetComponent<CapsuleCollider2D>();
+     gravityAtStart = rb.gravityScale;
     }
 
     // Update is called once per frame
-    void Update()
-    {
-        Move();
-        Flip();
+    
+        private void FixedUpdate()
+        {
+            if (!isClimbing)
+            {
+                Move();
+                Flip();
+            }
+
+            Ladder();
+        }
         
-    }
+        
+    
     void OnMove(InputValue value)
     {
         playerInput = value.Get<Vector2>();
         //Debug.Log(playerInput);
+    }
+    void OnJump(InputValue value)
+    {
+        if (!capsuleCollider.IsTouchingLayers(groundLayer))
+        {
+            //Debug.Log(layer);
+            return;
+        }
+        if (value.isPressed)
+        {
+            rb.velocity += new Vector2(0f, jumpForce);
+        }
     }
     public void Move()
     {
         Vector2 playerMove = new Vector2(playerInput.x*speed, rb.velocity.y);
         rb.velocity = playerMove;
         bool hasHorizontalSpeed = Mathf.Abs(rb.velocity.x) > Mathf.Epsilon;
+        //animator.SetBool(climb_anim, false);
         animator.SetBool(running_anim, hasHorizontalSpeed);
     }
     public void Flip()
@@ -43,5 +75,26 @@ public class PlayerMovement : MonoBehaviour
            transform.localScale = new Vector2(Mathf.Sign(rb.velocity.x), 1f); //flipping
         }
     }
+    public void Ladder()
+    {
+        if (!capsuleCollider.IsTouchingLayers(ladderLayer))
+        {
+            
+            isClimbing = false;
+            rb.gravityScale = gravityAtStart;
+            animator.SetBool(climb_anim, false);
+            return;
+        }
+        else if (capsuleCollider.IsTouchingLayers(ladderLayer) && Input.GetKey(KeyCode.E)){
+            isClimbing = true;
+            Vector2 playerClimb = new Vector2(rb.velocity.x, playerInput.y * climbSpeed);
+            rb.velocity = playerClimb;
+            rb.gravityScale = 0f;
+
+            animator.SetBool(climb_anim, true);
+        }
+        
+    }
     
+
 }
