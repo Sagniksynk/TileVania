@@ -12,12 +12,14 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] float jumpForce = 5.0f;
     [SerializeField] LayerMask groundLayer;
     [SerializeField] LayerMask ladderLayer;
+    [SerializeField] LayerMask enemyLayer;
     Animator animator;
     private string running_anim = "isRunning";
     private string climb_anim = "isClimbing";
     CapsuleCollider2D capsuleCollider;
     private bool isClimbing = false;
     private float gravityAtStart;
+    private bool isAlive = true;
     
     void Start()
     {
@@ -31,6 +33,7 @@ public class PlayerMovement : MonoBehaviour
     
         private void FixedUpdate()
         {
+            if (!isAlive) { return; }
             if (!isClimbing)
             {
                 Move();
@@ -38,17 +41,20 @@ public class PlayerMovement : MonoBehaviour
             }
 
             Ladder();
+            Death();
         }
         
         
     
     void OnMove(InputValue value)
     {
+        if (!isAlive) { return; }
         playerInput = value.Get<Vector2>();
         //Debug.Log(playerInput);
     }
     void OnJump(InputValue value)
     {
+        if (!isAlive) { return; }
         if (!capsuleCollider.IsTouchingLayers(groundLayer))
         {
             //Debug.Log(layer);
@@ -61,6 +67,7 @@ public class PlayerMovement : MonoBehaviour
     }
     public void Move()
     {
+        if (!isAlive) { return; }
         Vector2 playerMove = new Vector2(playerInput.x*speed, rb.velocity.y);
         rb.velocity = playerMove;
         bool hasHorizontalSpeed = Mathf.Abs(rb.velocity.x) > Mathf.Epsilon;
@@ -69,6 +76,7 @@ public class PlayerMovement : MonoBehaviour
     }
     public void Flip()
     {
+        if (!isAlive) { return; }
         bool hasHorizontalSpeed = Mathf.Abs(rb.velocity.x) > Mathf.Epsilon; 
         if (hasHorizontalSpeed)
         {
@@ -77,6 +85,7 @@ public class PlayerMovement : MonoBehaviour
     }
     public void Ladder()
     {
+        if (!isAlive) { return; }
         if (!capsuleCollider.IsTouchingLayers(ladderLayer))
         {
             
@@ -94,6 +103,13 @@ public class PlayerMovement : MonoBehaviour
             animator.SetBool(climb_anim, true);
         }
         
+    }
+    private void Death()
+    {
+        if (capsuleCollider.IsTouchingLayers(enemyLayer))
+        {
+            isAlive = false;
+        }
     }
     
 
